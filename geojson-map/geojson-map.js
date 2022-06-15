@@ -26,13 +26,13 @@ export default class GeoJsonWidget extends Widget {
     static get selector() {
         return '.or-appearance-geojson-map label:first-child > input';
     }
-	
+
     // For trigger update() methode when list update
     static get list() {
         return true; 
     }
-	
-	get props() {
+
+    get props() {
         const props = this._props;
         const i = this.question.querySelector( '.option-wrapper label' );
         props.name = i.dataset.itemsPath;
@@ -44,35 +44,34 @@ export default class GeoJsonWidget extends Widget {
         const img = this.question.querySelector( 'img' );
         this.$form = $( this.element ).closest( 'form.or' );
         this.mapId = Math.round( Math.random() * 10000000 );
-		// TODO : Maybe we can do this with other thing than an appearance ?
+        // TODO : Maybe we can do this with other thing than an appearance ?
         this.permanentLabel = this.props.appearances.length && this.props.appearances.includes("geojson-map-permanentlabel");
-		this.tooltipDirection = 'top';
-		this.tooltipMinZoom = null;
-		// TODO Add try catch
-		if ( this.props.appearances.length){
-			const direction = this.props.appearances.filter(e => e.includes('geojson-map-tooltipdirection'));
-			if ( direction && direction.length ){
-				this.tooltipDirection = direction[0].split("-").pop();
-			}
-			const minZoom = this.props.appearances.filter(e => e.includes('geojson-map-tooltipminzoom'));
-			if ( minZoom && minZoom.length ){
-				this.tooltipMinZoom = parseInt(minZoom[0].split("-").pop());
-			}
-		}
-		
-        
-		// This is for adding the trigger update() methode when list update
+        this.tooltipDirection = 'top';
+        this.tooltipMinZoom = null;
+        // TODO Add try catch
+        if ( this.props.appearances.length){
+            const direction = this.props.appearances.filter(e => e.includes('geojson-map-tooltipdirection'));
+            if ( direction && direction.length ){
+                this.tooltipDirection = direction[0].split("-").pop();
+            }
+            const minZoom = this.props.appearances.filter(e => e.includes('geojson-map-tooltipminzoom'));
+            if ( minZoom && minZoom.length ){
+                this.tooltipMinZoom = parseInt(minZoom[0].split("-").pop());
+            }
+        }
+
+
+        // This is for adding the trigger update() methode when list update
         // maybe we can just use do : this.question.querySelector(".option-wrapper input").classList.add("rank");
         this.question.querySelector(".option-wrapper input[type='radio']") && this.question.querySelector(".option-wrapper input[type='radio']").classList.add("rank");
         this.question.querySelector(".option-wrapper input[type='checkbox']") && this.question.querySelector(".option-wrapper input[type='checkbox']").classList.add("rank");
-        
         this.question.classList.add( 'or-geojson-map-initialized' );
-		
-		if (this.props.name ){
-			const instance = this.props.name.split( '/' ).length > 0 ? this.props.name.split( '/' )[0] : null;
-			this.instanceName = instance && instance.includes('instance') ? instance.split( "'" )[1] : null;
-		}
-        
+
+        if (this.props.name ){
+            const instance = this.props.name.split( '/' ).length > 0 ? this.props.name.split( '/' )[0] : null;
+            this.instanceName = instance && instance.includes('instance') ? instance.split( "'" )[1] : null;
+        }
+
         if ( !img ) {
             this._showGeoJsonError( 'geojsonNotFound' );
         } else if ( img.getAttribute( 'src' ) ) {
@@ -81,7 +80,6 @@ export default class GeoJsonWidget extends Widget {
                 .then( this._addFunctionality.bind( this ) )
                 .then( () => this );
         } else {
-            
             return new Promise( resolve => {
                 // TODO : why img.addEventListener( 'load' doesn't work with my geosjon, and work with svg on image-map ?
                 // img.addEventListener( 'load', () => {
@@ -100,7 +98,7 @@ export default class GeoJsonWidget extends Widget {
                     resolve( that );
                 }).observe(img,{attributes:true,attributeFilter:["src"]})
                 // After LOAD_GEOJSON_TIMEOUT milisec, if not load, show an error 
-                // Maybe make it better ?
+                // Maybe make it better ? - YES, do img.addEventListener
                 setTimeout(function() {
                     if(!loadingStatus){
                         that._showGeoJsonError("Cannot load geojson from cache");
@@ -111,7 +109,7 @@ export default class GeoJsonWidget extends Widget {
             // E.g. in Enketo Express inside a repeat: https://github.com/kobotoolbox/enketo-express/issues/961
         }
     }
-    
+
     /**
      * @param {Element} img - the image element
      * @return {Promise} the widget element
@@ -119,29 +117,28 @@ export default class GeoJsonWidget extends Widget {
     _addMarkup( img ) {
         const that = this;
         const src = img.getAttribute( 'src' );
-        
         /**
          * For translated forms, we now discard everything except the first image,
          * since we're assuming the images will be the same in all languages.
          */
         return fetch( src )
-            .then( response => response.json() )
-            .then( geojson => {
-                if(that._isValidGeojson(geojson)){
-                    const divmap = that._createFragment();
-                    // originalGeojson was used on update() methode for recalculate the _removeUnmatchedIds
-                    that.originalGeojson = JSON.parse(JSON.stringify(geojson));
-                    that._removeUnmatchedIds( geojson );
-                    that.map = that._createMap(divmap);
-                    that.geoJsonLayer = that._createLayer(geojson);
-                    if(!that.geoJsonLayer){ throw 'Cannot  init geoJsonLayer'; }
-                }
-            })
-			.catch( (error) => {
-				that._showGeoJsonError(error);
-			})
+        .then( response => response.json() )
+        .then( geojson => {
+            if(that._isValidGeojson(geojson)){
+                const divmap = that._createFragment();
+                // originalGeojson was used on update() methode for recalculate the _removeUnmatchedIds
+                that.originalGeojson = JSON.parse(JSON.stringify(geojson));
+                that._removeUnmatchedIds( geojson );
+                that.map = that._createMap(divmap);
+                that.geoJsonLayer = that._createLayer(geojson);
+                if(!that.geoJsonLayer){ throw 'Cannot  init geoJsonLayer'; }
+            }
+        })
+        .catch( (error) => {
+            that._showGeoJsonError(error);
+        })
     }
-    
+
     /**
      * Create DOM structure
      * @return {HTMLElement} HTML root node
@@ -160,7 +157,7 @@ export default class GeoJsonWidget extends Widget {
         that.question.querySelector( 'fieldset > .option-wrapper' ).before( divwrapper );
         return divmap;
     }
-    
+
     /**
      * Create the leaflet map on the DOM node
      * @param {HTMLElement} The div map
@@ -178,7 +175,6 @@ export default class GeoJsonWidget extends Widget {
             maxZoom: 21,
             id: 'streets',
         }).addTo(newmap);
-        
         // create the geolocation button
         const geoloc = document.createElement("a");
         geoloc.setAttribute("class", "icon icon-crosshairs");
@@ -201,7 +197,7 @@ export default class GeoJsonWidget extends Widget {
         $(divmap).find(".leaflet-bar")[0].appendChild(geoloc);
         return newmap;
     }
-    
+
     /**
      * Create a geojson layer and added to the map
      * @param {json} A valid geoJSON
@@ -216,7 +212,7 @@ export default class GeoJsonWidget extends Widget {
         const geojsonLayer = L.geoJSON(geojson["features"], {
             onEachFeature: function (feature, layer) {
                 const name = feature["properties"]["name"];
-				const label = feature["properties"]["label"];
+                const label = feature["properties"]["label"];
                 if(name){ // enable click action only on feature who has a name match with the list (_removeUnmatchedIds)
                     layer.on('click', function (e) {
                         const input = that._getInput( name );
@@ -226,14 +222,14 @@ export default class GeoJsonWidget extends Widget {
                             input.dispatchEvent( events.FakeFocus() );
                         }
                     });
-					let tooltip = name;
-					if ( label ) {
-						tooltip = label;
-					}
-					
-					// const geomType = `geojson-${feature.geometry.type}`
-					const classes = `geojson-label geojson-${feature.geometry.type} ${that.instanceName}`
-					layer.bindTooltip(tooltip, {permanent: that.permanentLabel, direction:that.tooltipDirection, className: classes})
+                    let tooltip = name;
+                    if ( label ) {
+                        tooltip = label;
+                    }
+                    
+                    // const geomType = `geojson-${feature.geometry.type}`
+                    const classes = `geojson-label geojson-${feature.geometry.type} ${that.instanceName}`
+                    layer.bindTooltip(tooltip, {permanent: that.permanentLabel, direction:that.tooltipDirection, className: classes})
                 }
             },
             pointToLayer: function (feature, latlng) {
@@ -249,18 +245,18 @@ export default class GeoJsonWidget extends Widget {
                 return feature.properties.name;
             }
         });
-		if ( that.tooltipMinZoom ) {
-			that.map.on('zoomend', function() {
-			  if (that.map.getZoom() < that.tooltipMinZoom) {
-				  that.map.getPane('tooltipPane').style.display = 'none';
-			  } else {
-				  that.map.getPane('tooltipPane').style.display = 'block';
-			  }
-			})
-		}
+        if ( that.tooltipMinZoom ) {
+            that.map.on('zoomend', function() {
+              if (that.map.getZoom() < that.tooltipMinZoom) {
+                  that.map.getPane('tooltipPane').style.display = 'none';
+              } else {
+                  that.map.getPane('tooltipPane').style.display = 'block';
+              }
+            })
+        }
         return geojsonLayer;
     }
-    
+
     /**
      * @param {object} widget - the widget element
      */
@@ -271,14 +267,14 @@ export default class GeoJsonWidget extends Widget {
         this._updateMapOnFilpPage();
         this._zoomToExtend()
     }
-    
+
     /**
      * Handles change listener when you click on feature for example
      */
     _setChangeHandler() {
         this.question.addEventListener( 'change', this._updateLayer.bind( this ) );
     }
-    
+
     /**
      * Like geopicker widget, update map on flip page.
      */
@@ -294,7 +290,7 @@ export default class GeoJsonWidget extends Widget {
             }
         } );
     }
-    
+
     /**
      * Zoom to the extend of selectable features
      * Only if you add geojson-map-zoom-extend appearance
@@ -315,7 +311,7 @@ export default class GeoJsonWidget extends Widget {
             }
         }
     }
-    
+
     /**
      * Updates 'selected' attributes in GeoJSON
      * Always update the map after the value has changed in the original input elements
@@ -367,15 +363,15 @@ export default class GeoJsonWidget extends Widget {
             }else{
                 console.error("Feature type not supported");
             }
-			// TODO : https://gis.stackexchange.com/questions/22474/geojson-styling-information
+            // TODO : https://gis.stackexchange.com/questions/22474/geojson-styling-information
             // We can set style from geojson style propertie ? especially for feature who don't have a currentLayerName
             // So, we can override style of somes features directly in the geojson
-			// if ( layer.feature.style...){
-				// layer.setStyle(layer.feature.style);
-			// }
+            // if ( layer.feature.style...){
+                // layer.setStyle(layer.feature.style);
+            // }
         })
     }
-    
+
     /**
      * Test is GeoJSON is valid
      *
@@ -389,7 +385,7 @@ export default class GeoJsonWidget extends Widget {
         // TODO : test foreach feature the type, properties and geometrie ?
         return true;
     }
-    
+
     /**
      * Removes name attributes from unmatched feature in order to prevent hover effect (and click listener).
      *
@@ -403,7 +399,7 @@ export default class GeoJsonWidget extends Widget {
             }
         });
     }
-    
+
     /**
      * @param {string} id - the option ID
      * @return {Element} input element with matching ID
@@ -411,7 +407,7 @@ export default class GeoJsonWidget extends Widget {
     _getInput( id ) {
         return this.question.querySelector( `input[value="${CSS.escape( id )}"]` );
     }
-    
+
     /**
      * @param {Error} err - error message
      */
@@ -423,9 +419,9 @@ export default class GeoJsonWidget extends Widget {
             </div>`
         );
         this.question.querySelector( '.option-wrapper' ).before( fragment );
-		this.question.querySelector( '.option-wrapper' ).style.display = 'block';
+        this.question.querySelector( '.option-wrapper' ).style.display = 'block';
     }
-    
+
     update() {
         const that = this;
         if ( that.map ){
@@ -442,12 +438,12 @@ export default class GeoJsonWidget extends Widget {
         // This widget is unusual. It would better to get the value from the map.
         return this.originalInputValue;
     }
-    
+
     set value( value ) {
         // This widget is unusual. It would more consistent to set the value in the map perhaps.
         this.originalInputValue = value;
     }
-    
+
     disable() {
         // TODO what ? Same of geopicker ?
     }
@@ -457,8 +453,8 @@ export default class GeoJsonWidget extends Widget {
      */
     enable() {
         this.map.invalidateSize();
-		this._zoomToExtend()
-		//TODO : Need a full upate() ?
+        this._zoomToExtend()
+        //TODO : Need a full upate() ?
     }
 }
 
