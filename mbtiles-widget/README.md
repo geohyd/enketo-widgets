@@ -1,6 +1,6 @@
 Mbtiles Enketo Widget 1.0.0
 ==========
-TODO : This widget should be migrated to follow the same code as the `geojson-map` widget !
+TODO : This widget should be migrated to follow the same code as the `geo-layer` widget !
 
 To add this widget to your Enketo Express installation see [this guidance](https://github.com/kobotoolbox/enketo-express/blob/master/tutorials/34-custom-widgets.md).
 
