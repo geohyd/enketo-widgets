@@ -8,7 +8,8 @@ In this Example, my geoJSON have .json extension, but you can change with .csv (
 
 ## How it work
 
-Add a geojson reference file in image column of the XLSForm and the geojson-map appearance.
+Add a geojson reference file in image column of the XLSForm and the geojson-map appearance.  
+Rename `geojson_demo.json` to `geojson_demo.csv` for kobo extension restriction, and apply this rename in XLSForm
 
 # Use .json extension 
 
